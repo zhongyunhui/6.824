@@ -49,7 +49,10 @@ package labrpc
 //   pass svc to srv.AddService()
 //
 
-import "6.824/labgob"
+import (
+	"6.824/labgob"
+	"fmt"
+)
 import "bytes"
 import "reflect"
 import "sync"
@@ -346,6 +349,7 @@ func (rn *Network) DeleteServer(servername interface{}) {
 // connect a ClientEnd to a server.
 // a ClientEnd can only be connected once in its lifetime.
 func (rn *Network) Connect(endname interface{}, servername interface{}) {
+	fmt.Printf("将客户端%v和服务器%d连接\n", endname, servername)
 	rn.mu.Lock()
 	defer rn.mu.Unlock()
 

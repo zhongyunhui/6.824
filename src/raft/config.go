@@ -62,13 +62,16 @@ var ncpu_once sync.Once
 func make_config(t *testing.T, n int, unreliable bool, snapshot bool) *config {
 	ncpu_once.Do(func() {
 		if runtime.NumCPU() < 2 {
-			fmt.Printf("warning: only one CPU, which may conceal locking bugs\n")
+			DPrintf("warning: only one CPU, which may conceal locking bugs\n")
 		}
 		rand.Seed(makeSeed())
 	})
+	DPrintf("对raft进行设置\n")
+	// 设置可执行cpu最大数量为4个
 	runtime.GOMAXPROCS(4)
 	cfg := &config{}
 	cfg.t = t
+	// 初始化网络
 	cfg.net = labrpc.MakeNetwork()
 	cfg.n = n
 	cfg.applyErr = make([]string, cfg.n)
@@ -88,13 +91,16 @@ func make_config(t *testing.T, n int, unreliable bool, snapshot bool) *config {
 		applier = cfg.applierSnap
 	}
 	// create a full set of Rafts.
+	// 建立完整系列的Rafts
 	for i := 0; i < cfg.n; i++ {
 		cfg.logs[i] = map[int]interface{}{}
+
 		cfg.start1(i, applier)
 	}
 
 	// connect everyone
 	for i := 0; i < cfg.n; i++ {
+
 		cfg.connect(i)
 	}
 
@@ -238,13 +244,14 @@ func (cfg *config) applierSnap(i int, applyCh chan ApplyMsg) {
 // this server. since we cannot really kill it.
 //
 func (cfg *config) start1(i int, applier func(int, chan ApplyMsg)) {
+	DPrintf("--------启动第%d个rafts---------\n", i)
 	cfg.crash1(i)
-
+	// 传出新的客户端名字，使得旧的崩溃的实例的客户端不能发送
 	// a fresh set of outgoing ClientEnd names.
 	// so that old crashed instance's ClientEnds can't send.
 	cfg.endnames[i] = make([]string, cfg.n)
 	for j := 0; j < cfg.n; j++ {
-		cfg.endnames[i][j] = randstring(20)
+		cfg.endnames[i][j] = randstring(20)		// 随机名字
 	}
 
 	// a fresh set of ClientEnds.
@@ -304,7 +311,7 @@ func (cfg *config) cleanup() {
 // attach server i to the net.
 func (cfg *config) connect(i int) {
 	// fmt.Printf("connect(%d)\n", i)
-
+	DPrintf("---------和第%d个建立连接-------\n", i)
 	cfg.connected[i] = true
 
 	// outgoing ClientEnds
