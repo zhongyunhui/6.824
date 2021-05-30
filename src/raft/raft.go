@@ -19,13 +19,13 @@ package raft
 
 import (
 	//	"bytes"
+	"log"
 	"sync"
 	"sync/atomic"
 
 	//	"6.824/labgob"
 	"6.824/labrpc"
 )
-
 
 //
 // as each Raft peer becomes aware that successive log entries are
@@ -57,10 +57,10 @@ const (
 )
 
 const heartBeatTimeout = 150
+
 //
 // A Go object implementing a single Raft peer.
 //
-
 
 type Raft struct {
 	mu        sync.Mutex          // Lock to protect shared access to this peer's state
@@ -69,25 +69,24 @@ type Raft struct {
 	me        int                 // this peer's index into peers[]
 	dead      int32               // set by Kill()
 
-	logMu sync.Mutex
+	logMu        sync.Mutex
 	applyMsgCond *sync.Cond
-	myState int
+	myState      int
 	//所有server的持久化状态
 	currentTerm int
-	votedFor int
-	log []logEntry
+	votedFor    int
+	log         []logEntry
 
 	// 所有server上的不稳定的状态
 	commitIndex int
 	lastApplied int
 	// leader的可变状态
-	nextIndex []int
+	nextIndex  []int
 	matchIndex []int
 
-
 	electionTimeout int
-	timerReset bool
-	votedCount int
+	timerReset      bool
+	votedCount      int
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
@@ -97,7 +96,7 @@ type Raft struct {
 
 type logEntry struct {
 	command interface{}
-	term int
+	term    int
 }
 
 // return currentTerm and whether this server
@@ -120,6 +119,21 @@ func (rf *Raft) GetState() (int, bool) {
 	return term, isleader
 }
 
+func (rf *Raft) updateCommitIndex() {
+	lenLog:=len(rf.log)
+	for i := rf.commitIndex+1; i < lenLog; i++ {
+		count := 0
+		for _, v := range rf.matchIndex {
+			if v >= i {
+				count++
+			}
+		}
+		if count > lenLog/2 && rf.log[i].term == rf.currentTerm {
+			rf.commitIndex = i
+			return
+		}
+	}
+}
 
 func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	DPrintf("2A   leader%d向节点%d发送appendEntries请求，请求在%d处添加log\n", rf.me, server, rf.nextIndex[server])
@@ -130,21 +144,29 @@ func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *Ap
 	if ok {
 		if reply.Success {
 			rf.nextIndex[server] = len(rf.log)
+			rf.matchIndex[server] += 1
+			rf.unLock()
 		} else {
-
+			for args.Term >= reply.Term && !reply.Success {
+				rf.nextIndex[server] -= 1
+				args.Entries = rf.log[rf.nextIndex[server]:]
+				rf.unLock()
+				ok = rf.sendAppendEntries(server, args, reply)
+			}
 		}
+	} else {
+		rf.unLock()
 	}
-	rf.unLock()
+
 	return ok
 }
 
 func (rf *Raft) sendAppendEntriesToFollower() {
-
 	args := AppendEntriesArgs{
 		Term:         rf.currentTerm,
 		LeaderId:     rf.me,
-		PrevLogIndex: len(rf.log)-1,
-		Entries: []logEntry{},
+		PrevLogIndex: len(rf.log) - 1,
+		Entries:      []logEntry{},
 		LeaderCommit: rf.commitIndex,
 	}
 
@@ -176,7 +198,6 @@ func (rf *Raft) persist() {
 	// rf.persister.SaveRaftState(data)
 }
 
-
 //
 // restore previously persisted state.
 //
@@ -199,7 +220,6 @@ func (rf *Raft) readPersist(data []byte) {
 	// }
 }
 
-
 //
 // A service wants to switch to snapshot.  Only do so if Raft hasn't
 // have more recent info since it communicate the snapshot on applyCh.
@@ -220,16 +240,15 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 
 }
 
-
 //
 // example RequestVote RPC arguments structure.
 // field names must start with capital letters!
 //
 type RequestVoteArgs struct {
-	Term int
-	CandidateId int
+	Term         int
+	CandidateId  int
 	LastLogIndex int
-	LastLogTerm int
+	LastLogTerm  int
 	// Your data here (2A, 2B).
 }
 
@@ -238,15 +257,14 @@ type RequestVoteArgs struct {
 // field names must start with capital letters!
 //
 type RequestVoteReply struct {
-	Term int
+	Term        int
 	VoteGranted bool
 	// Your data here (2A).
 }
 
-
 type AppendEntriesArgs struct {
-	Term int
-	LeaderId int
+	Term         int
+	LeaderId     int
 	PrevLogIndex int
 
 	PervLogTerm  int
@@ -255,11 +273,9 @@ type AppendEntriesArgs struct {
 }
 
 type AppendEntriesReply struct {
-	Term int
+	Term    int
 	Success bool
 }
-
-
 
 //
 // example RequestVote RPC handler.
@@ -296,7 +312,6 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 			reply.VoteGranted = false
 		}
 	}
-	return
 	// Your code here (2A, 2B).
 }
 
@@ -319,15 +334,14 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	}
 	// entry和新的entry存在冲突，则删除entry和之后的所有条目
 	for k, v := range args.Entries {
-		index:= args.PrevLogIndex+k
+		index := args.PrevLogIndex + k
 		if index < logLen && rf.log[index].term != v.term {
 			rf.log = rf.log[:index]
 		}
 	}
 	// append new entries not already in the log
-	for _, v := range args.Entries {
-		rf.log = append(rf.log, v)
-	}
+	rf.log = append(rf.log, args.Entries...)
+
 	// if leaderCommit > commitIndex, set CommitIndex = min(leaderCommit, index of last new entry
 	if args.LeaderCommit > rf.commitIndex {
 		rf.commitIndex = Min(args.LeaderCommit, len(rf.log)-1)
@@ -342,8 +356,6 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	//fmt.Printf("Leader  %d  和Follower  %d  的term一样，它们的term为%d\n", args.LeaderId, rf.me, args.Term)
 
 }
-
-
 
 //
 // the service using Raft (e.g. a k/v server) wants to start
@@ -364,7 +376,7 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	if rf.killed() {
 		return -1, -1, false
 	}
-	isLeader := rf.myState==LeaderState
+	isLeader := rf.myState == LeaderState
 	if !isLeader {
 		return -1, -1, false
 	}
@@ -430,28 +442,27 @@ func (rf *Raft) sendApplyMsg(applyCh chan ApplyMsg) {
 func Make(peers []*labrpc.ClientEnd, me int,
 	persister *Persister, applyCh chan ApplyMsg) *Raft {
 	rf := &Raft{
-		peers: peers,
+		peers:     peers,
 		persister: persister,
-		me: me,
+		me:        me,
 		//2A
-		timerReset: false,
+		timerReset:  false,
 		currentTerm: 0,
-		votedFor: -1,
-		myState: FollowerState,
+		votedFor:    -1,
+		myState:     FollowerState,
 		//2B
 		commitIndex: 0,
-		lastApplied: 0,   // 应用于state machine的log entry最高index
-		log: make([]logEntry,1),
-		nextIndex: make([]int, len(peers)),
-		matchIndex: make([]int, len(peers)),
+		lastApplied: 0, // 应用于state machine的log entry最高index
+		log:         make([]logEntry, 1),
+		nextIndex:   make([]int, len(peers)),
+		matchIndex:  make([]int, len(peers)),
 	}
 
 	rf.log[0] = logEntry{}
 	rf.applyMsgCond = sync.NewCond(&rf.logMu)
 	for _, v := range peers {
-		DPrintf("%d\n",v)
+		DPrintf("%d\n", v)
 	}
-
 
 	// Your initialization code here (2A, 2B, 2C).
 
