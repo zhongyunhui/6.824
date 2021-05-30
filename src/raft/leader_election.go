@@ -12,8 +12,7 @@ func (rf *Raft) unLock() {
 	rf.mu.Unlock()
 }
 
-
-func (rf *Raft) checkState(state int) bool{
+func (rf *Raft) checkState(state int) bool {
 	rf.lock()
 	defer rf.unLock()
 	if rf.myState != state {
@@ -35,11 +34,11 @@ func (rf *Raft) checkTimerReset(state int) bool {
 	checkSum := float64(300)
 	checkTime := float64(rf.electionTimeout) / checkSum
 
-	for i:= 0; i < 300; i++ {
+	for i := 0; i < 300; i++ {
 		if rf.checkState(state) {
 			return true
 		}
-		time.Sleep(time.Duration(checkTime*1000)*time.Microsecond)
+		time.Sleep(time.Duration(checkTime*1000) * time.Microsecond)
 	}
 	//DPrintf("2A   节点%d的timerout为%v", me, time.Since(now))
 	if rf.checkState(state) {
@@ -49,9 +48,15 @@ func (rf *Raft) checkTimerReset(state int) bool {
 	}
 }
 
+func (rf *Raft) leaderInitialize() {
+	rf.nextIndex = make([]int, len(rf.peers))
+	for _, v := range rf.nextIndex {
+		v = 
+	}
+}
 
 func (rf *Raft) ticker() {
-	for rf.killed() == false {
+	for !rf.killed() {
 		rf.lock()
 		//DPrintf("2A   节点%d进入ticker循环", rf.me)
 		switch rf.myState {
@@ -82,14 +87,14 @@ func (rf *Raft) ticker() {
 func (rf *Raft) toCandidate() {
 	rf.lock()
 	defer rf.unLock()
-	if rf.votedFor == -1 || !rf.timerReset{
+	if rf.votedFor == -1 || !rf.timerReset {
 		rf.myState = CandidateState
 		//DPrintf("2A   节点%d未收到Leader发送的消息\n", rf.me)
 	}
 	//DPrintf("2A   节点%d变成Candidate", rf.me)
 }
 func (rf *Raft) checkFollower() {
-	for rf.killed() == false{
+	for rf.killed() == false {
 		//fmt.Println("该节点为Follower")
 		//fmt.Printf("节点%dcheckFollower获得锁\n", rf.me)
 		// 当election timer没有复位，而且rf没有投票的话，则将该节点变成Candidate
@@ -102,7 +107,7 @@ func (rf *Raft) checkFollower() {
 }
 
 func (rf *Raft) startElection() {
-	for rf.killed() == false{
+	for rf.killed() == false {
 		rf.sendRequestVotes()
 		if rf.checkTimerReset(CandidateState) {
 			return
@@ -120,8 +125,8 @@ func (rf *Raft) sendHeartBeat() bool {
 	args := AppendEntriesArgs{
 		Term:         rf.currentTerm,
 		LeaderId:     rf.me,
-		PrevLogIndex: len(rf.log)-1,
-		Entries: []logEntry{},
+		PrevLogIndex: len(rf.log) - 1,
+		Entries:      []logEntry{},
 		LeaderCommit: rf.commitIndex,
 	}
 	rf.unLock()
@@ -135,9 +140,8 @@ func (rf *Raft) sendHeartBeat() bool {
 	return true
 }
 
-
 func (rf *Raft) sendHeartBeats() {
-	for rf.killed()==false {
+	for rf.killed() == false {
 		if !rf.sendHeartBeat() {
 			//DPrintf("2A   节点%d的状态从leader变成了%d", rf.me, rf.myState)
 			return

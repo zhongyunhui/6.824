@@ -454,8 +454,6 @@ func Make(peers []*labrpc.ClientEnd, me int,
 		commitIndex: 0,
 		lastApplied: 0, // 应用于state machine的log entry最高index
 		log:         make([]logEntry, 1),
-		nextIndex:   make([]int, len(peers)),
-		matchIndex:  make([]int, len(peers)),
 	}
 
 	rf.log[0] = logEntry{}
