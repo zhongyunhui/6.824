@@ -97,7 +97,6 @@ func (e *ClientEnd) Call(svcMeth string, args interface{}, reply interface{}) bo
 		panic(err)
 	}
 	req.args = qb.Bytes()
-
 	//
 	// send the request.
 	//

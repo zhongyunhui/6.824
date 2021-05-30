@@ -55,31 +55,3 @@ Part 2A：leader选举
 
 每个Passed行包括5个数字：测试所花费的秒数、Raft peers的数量、RPC发送的数量、RPC 消息中总字节数以及Raft报告所提交的log entries的数量。
 
-
-
-
-
-#### 步骤
-
-1. 所有的节点一开始都是follower
-2. 没有听到leader则变成candidate
-3. candidate向其他节点请求票
-4. 其他节点回复选票
-5. candidate变成leader
-6. client所有change经过leader
-7. 每个change作为一个条目添加到节点的日志中
-8. 此日志条目目前尚未提交，因此不更新节点的值
-9. 在提交日志条目前先将其复制到follower
-10. leader等待，直到大部分节点都写入日志条目
-11. leader提交更改
-12. leader通知follower该条目已提交
-13. 
-
-
-
-
-
-#### 过程
-
-问题1：当第一个节点变成candidate之后，向第二个节点发送requestVote的途中，第二个节点变成了candidate
-

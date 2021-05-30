@@ -336,7 +336,7 @@ func (cfg *config) disconnect(i int) {
 	// fmt.Printf("disconnect(%d)\n", i)
 
 	cfg.connected[i] = false
-
+	DPrintf("将节点%d断开连接", i)
 	// outgoing ClientEnds
 	for j := 0; j < cfg.n; j++ {
 		if cfg.endnames[i] != nil {
