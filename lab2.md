@@ -55,3 +55,28 @@ Part 2A：leader选举
 
 每个Passed行包括5个数字：测试所花费的秒数、Raft peers的数量、RPC发送的数量、RPC 消息中总字节数以及Raft报告所提交的log entries的数量。
 
+
+
+
+
+#### lab2B
+
+当Raft启动时候:
+
+```
+server:
+	state: Follower
+	currentTerm: 0
+	votedFOr: -1
+	log[]: [占位entry]  // 使得新添加的log的index从1开始
+	commitIndex: 0
+	lastApplied: 0
+```
+
+当electimeout之后，变成candidate向其他节点发送requestVote RPC，term > rf.currentTerm && candidate的log至少和receiver的log一样最新授予投票。
+
+当变成leader之后，初始化nextIndex[]和matchIndex[]，并向其他节点立即发送心跳。
+
+异步地，当lastLogIndex>=follower的nextIndex时，对该follower发送appendEntries请求，index是从nextIndex开始发送。
+
+client发送command给leader，当leaderapplied state machine时，应用到状态机并回复给client。
