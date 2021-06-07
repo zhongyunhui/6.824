@@ -144,7 +144,7 @@ func (cfg *config) checkLogs(i int, m ApplyMsg) (string, bool) {
 	v := m.Command
 	for j := 0; j < len(cfg.logs); j++ {
 		if old, oldok := cfg.logs[j][m.CommandIndex]; oldok && old != v {
-			log.Printf("%v: log %v; server %v\n", i, cfg.logs[i], cfg.logs[j])
+			DPrintf("leader%v: logEntries %v; server %v\n", i, cfg.logs[i], cfg.logs[j])
 			// some server has already committed a different value for this entry!
 			err_msg = fmt.Sprintf("commit index=%v server=%v %v != server=%v %v",
 				m.CommandIndex, i, m.Command, j, old)
@@ -158,10 +158,11 @@ func (cfg *config) checkLogs(i int, m ApplyMsg) (string, bool) {
 	return err_msg, prevok
 }
 
-// applier reads message from apply ch and checks that they match the log
+// applier reads message from apply ch and checks that they match the logEntries
 // contents
 func (cfg *config) applier(i int, applyCh chan ApplyMsg) {
 	for m := range applyCh {
+		//DPrintf("该applyCh为%v", m)
 		if m.CommandValid == false {
 			// ignore other types of ApplyMsg
 		} else {
@@ -336,7 +337,7 @@ func (cfg *config) disconnect(i int) {
 	// fmt.Printf("disconnect(%d)\n", i)
 
 	cfg.connected[i] = false
-	DPrintf("将节点%d断开连接", i)
+	DPrintf("============将节点%d断开连接==========", i)
 	// outgoing ClientEnds
 	for j := 0; j < cfg.n; j++ {
 		if cfg.endnames[i] != nil {
@@ -436,7 +437,7 @@ func (cfg *config) checkNoLeader() {
 	}
 }
 
-// how many servers think a log entry is committed?
+// how many servers think a logEntries entry is committed?
 func (cfg *config) nCommitted(index int) (int, interface{}) {
 	count := 0
 	var cmd interface{} = nil
@@ -447,6 +448,7 @@ func (cfg *config) nCommitted(index int) (int, interface{}) {
 
 		cfg.mu.Lock()
 		cmd1, ok := cfg.logs[i][index]
+		//DPrintf("nCommitted中，cfg.logs[server%d][index%d]为cmd[%v]", i, index, cmd1)
 		cfg.mu.Unlock()
 
 		if ok {
@@ -458,6 +460,7 @@ func (cfg *config) nCommitted(index int) (int, interface{}) {
 			cmd = cmd1
 		}
 	}
+	//DPrintf("count%d", count)
 	return count, cmd
 }
 
@@ -505,6 +508,7 @@ func (cfg *config) wait(index int, n int, startTerm int) interface{} {
 // if retry==false, calls Start() only once, in order
 // to simplify the early Lab 2B tests.
 func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
+
 	t0 := time.Now()
 	starts := 0
 	for time.Since(t0).Seconds() < 10 {
@@ -520,6 +524,7 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 			cfg.mu.Unlock()
 			if rf != nil {
 				index1, _, ok := rf.Start(cmd)
+				DPrintf("client send cmd[%v] to server[%d],  original index为[%d], Start之后得到的index为[%d]", cmd, rf.me, index, index1)
 				if ok {
 					index = index1
 					break
@@ -532,9 +537,13 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 			// submitted our command; wait a while for agreement.
 			t1 := time.Now()
 			for time.Since(t1).Seconds() < 2 {
+				//DPrintf("index为%d", index)
 				nd, cmd1 := cfg.nCommitted(index)
+				//DPrintf("nCommitted后，得到的nCount[%d], cmd1为【%v】", nd, cmd1)
+				//DPrintf("nd为%d   cmd1为%d", nd, cmd1)
 				if nd > 0 && nd >= expectedServers {
 					// committed
+					//DPrintf("cmd1为%v           原来的cmd为%v", cmd1,cmd)
 					if cmd1 == cmd {
 						// and it was the command we submitted.
 						return index
@@ -549,6 +558,7 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 			time.Sleep(50 * time.Millisecond)
 		}
 	}
+	DPrintf("超时t0")
 	cfg.t.Fatalf("one(%v) failed to reach agreement", cmd)
 	return -1
 }
@@ -585,7 +595,7 @@ func (cfg *config) end() {
 	}
 }
 
-// Maximum log size across all servers
+// Maximum logEntries size across all servers
 func (cfg *config) LogSize() int {
 	logsize := 0
 	for i := 0; i < cfg.n; i++ {
