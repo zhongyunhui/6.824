@@ -43,17 +43,16 @@ func (rf *Raft) updateCommitIndex() {
 	rf.unLock()
 }
 
-func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
+func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	rf.lock()
 	DPrintf("leader【%d】向节点【%d】发送entries，args的term【%d】，leaderID【%d】，prevLogIndex【%d】，prevLogTerm【%d】，entries【%d】，leaderCommit【%d】", rf.me, server, args.Term, args.LeaderId, args.PrevLogIndex, args.PrevLogTerm, args.Entries, args.LeaderCommit)
 	if server == rf.me {
 		rf.nextIndex[server] = args.PrevLogIndex + len(args.Entries) + 1
-		DPrintf("rf.nextIndex[%d][%d]", server, rf.nextIndex[server])
 		rf.matchIndex[server] = rf.nextIndex[server] - 1
 		DPrintf("在sendAppendEntries中更新节点%d的nextIndex为%d，matchIndex变为%d", server, rf.nextIndex[server], rf.matchIndex[server])
 		rf.unLock()
 		rf.updateCommitIndex()
-		return true
+		return
 	}
 	//DPrintf("2A   leader%d向节点%d发送appendEntries请求，请求在%d处添加log\n", rf.me, server, rf.nextIndex[server])
 	rf.unLock()
@@ -63,11 +62,14 @@ func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *Ap
 	//DPrintf("rf的log为%v", rf.logEntries)
 	//DPrintf("2A  节点%d向节点%d发送心跳%v", rf.me, server, reply.Success)
 	if ok {
+		if rf.currentTerm != args.Term {
+			rf.unLock()
+			return
+		}
 		if reply.Success {
 			rf.nextIndex[server] = args.PrevLogIndex + len(args.Entries) + 1
-			DPrintf("rf.nextIndex[%d][%d]", server, rf.nextIndex[server])
 			rf.matchIndex[server] = rf.nextIndex[server] - 1
-			DPrintf("在sendAppendEntries中更新节点%d的nextIndex为%d，matchIndex变为%d", server, rf.nextIndex[server], rf.matchIndex[server])
+			DPrintf("在leader%d sendAppendEntries中更新节点%d的nextIndex为%d，matchIndex变为%d", rf.me, server, rf.nextIndex[server], rf.matchIndex[server])
 			rf.unLock()
 			rf.updateCommitIndex()
 		} else {
@@ -101,11 +103,9 @@ func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *Ap
 				//ok = rf.sendAppendEntries(server, args, reply)
 			}
 		}
-		return ok
+		return
 	}
 	rf.unLock()
-
-	return ok
 }
 
 
