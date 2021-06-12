@@ -12,109 +12,92 @@ func (rf *Raft) unLock() {
 	rf.mu.Unlock()
 }
 
-func (log *LogEntry) Apply(index int) {
-
-	//DPrintf("节点%d运行了命令%v，它的term为%d\n", index, logEntries.Command, logEntries.Term)
-}
-
-func (rf *Raft) checkCanApply() {
-	rf.lock()
-	if rf.commitIndex > rf.lastApplied {
-		rf.unLock()
-		rf.applyMsgCond.L.Lock()
-		rf.applyMsgCond.Signal()
-		rf.applyMsgCond.L.Unlock()
-	} else {
-		rf.unLock()
-	}
-}
-
 func (rf *Raft) sendApplyMsg(applyCh chan ApplyMsg) {
 	for !rf.killed() {
-		rf.lock()
-		DPrintf("节点%d向客户端发送消息，它的commitIndex为%d,lastApplied为%d", rf.me, rf.commitIndex, rf.lastApplied)
-		if rf.commitIndex <= rf.lastApplied {
-			rf.unLock()
-			rf.applyMsgCond.L.Lock()
-			rf.applyMsgCond.Wait()
-			rf.applyMsgCond.L.Unlock()
-		} else {
-			rf.unLock()
+		time.Sleep(10 * time.Millisecond)
+		applyMsgs := make([]ApplyMsg, 0)
+
+
+		func() {
+			rf.lock()
+			defer rf.unLock()
+			for rf.commitIndex > rf.lastApplied {
+				DPrintf("节点[%d]向客户端发送消息，它的commitIndex为[%d],lastApplied为[%d]", rf.me, rf.commitIndex, rf.lastApplied)
+				rf.lastApplied++
+				applyMsgs = append(applyMsgs, ApplyMsg{
+					CommandValid:  true,
+					Command:       rf.logEntries[rf.lastApplied-1].Command,
+					CommandIndex:  rf.lastApplied,
+				})
+			}
+		}()
+		for _, v := range applyMsgs {
+			applyCh <- v
 		}
-		rf.lock()
-		rf.logEntries[rf.lastApplied].Apply(rf.me)
-		rf.lastApplied++
-		applyMsg := ApplyMsg{
-			CommandValid:  true,
-			Command:       rf.logEntries[rf.lastApplied-1].Command,
-			CommandIndex:  rf.lastApplied,
-		}
-		rf.unLock()
-		DPrintf("RaftNode [%d] applyLog Command [%v] lastApplied和commandIndex[%d]", rf.me, applyMsg.Command, applyMsg.CommandIndex)
-		applyCh <- applyMsg
 	}
 }
-
-
 
 func (rf *Raft) checkState(state int) bool {
 	rf.lock()
 	defer rf.unLock()
 	if rf.myState != state {
-		DPrintf("2A  checkState中 节点%d的state从%d变成了%d", rf.me, state, rf.myState)
-		rf.timerReset = true
+		return false
 	}
-	if rf.timerReset {
-		return true
-	}
-	return false
+	return true
+}
+
+
+
+func (rf *Raft) initTimerReset() {
+	rf.lock()
+	defer rf.unLock()
+	rf.timerReset = false
+}
+func (rf *Raft) getTimerReset() bool {
+	rf.lock()
+	defer rf.unLock()
+	return rf.timerReset
 }
 
 func (rf *Raft) checkTimerReset(state int) bool {
 	now := time.Now()
-	rf.electionTimeout = RandInt(400, 600)
-	rf.lock()
-	rf.timerReset = false
-	me := rf.me
-	rf.unLock()
+	rf.electionTimeout = RandInt(400, 550)
+	rf.initTimerReset()
 	checkSum := float64(300)
-	checkTime := float64(rf.electionTimeout) / checkSum
-
+	checkTime := float64(rf.electionTimeout)/checkSum
 	for i := 0; i < 300; i++ {
-		if rf.checkState(state) {
+		if rf.getTimerReset() || rf.getMyState() != state{
 			return true
 		}
 		time.Sleep(time.Duration(checkTime*1000) * time.Microsecond)
 	}
-	DPrintf("2A   节点%d的timerout为%v", me, time.Since(now))
-	if rf.checkState(state) {
-		return true
-	} else {
-		return false
-	}
+	DPrintf("节点[%d]的timerout为[%v]", rf.me, time.Since(now))
+	return false
+}
+
+func (rf *Raft) getMyState() int{
+	rf.lock()
+	defer rf.unLock()
+	state := rf.myState
+	return state
 }
 
 func (rf *Raft) ticker() {
 	for !rf.killed() {
-		rf.lock()
-		DPrintf("2A   节点【%d】进入ticker循环", rf.me)
-		switch rf.myState {
+		state := rf.getMyState()
+		switch state {
 		case FollowerState:
-			rf.unLock()
 			rf.checkFollower()
 			break
 		case CandidateState:
-			rf.unLock()
 			rf.startElection()
 			break
 		case LeaderState:
 			// 发送心跳
-			rf.unLock()
 			//DPrintf("2A   节点%d变成leader\n", rf.me)
 			rf.sendAppendEntriesToFollower()
 			break
 		default:
-			rf.unLock()
 			panic("不合法的state")
 		}
 	}

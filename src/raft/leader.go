@@ -5,23 +5,22 @@ import (
 )
 
 func (rf *Raft) leaderInitialize() {
+	rf.myState = LeaderState
+	rf.timerReset = true
+	DPrintf("Candidate[%d] 获取大多数选票，变为leader", rf.me)
 	// reinitialized after election，初始化nextIndex和matchIndex
-	rf.lock()
-	defer rf.unLock()
-	DPrintf("初始化leader%d", rf.me)
 	rf.nextIndex = make([]int, len(rf.peers))
 	rf.matchIndex = make([]int, len(rf.peers))
 	for i:= 0; i < len(rf.nextIndex); i++ {
 		rf.nextIndex[i] = len(rf.logEntries)+1
 		rf.matchIndex[i] = 0
 	}
-	DPrintf("初始化的nextIndex为%d", rf.nextIndex[0])
+	DPrintf("leader[%d]进行初始化完毕，nextIndex初始化为[%d]", rf.me, rf.nextIndex[0])
 }
 
 func (rf *Raft) updateCommitIndex() {
-	rf.lock()
 	lenLog:=len(rf.logEntries)
-	DPrintf("检查是否更新commitIndex, rf.log为%d", lenLog)
+
 	for i := rf.commitIndex+1; i <= lenLog; i++ {
 		count := 0
 		for _, v := range rf.matchIndex {
@@ -29,58 +28,60 @@ func (rf *Raft) updateCommitIndex() {
 				count++
 			}
 		}
-		//DPrintf("count的值为%d", count)
-		//DPrintf("lenLog的值为%d", lenLog)
 		if count > len(rf.peers)/2 && rf.logEntries[i-1].Term == rf.currentTerm {
 			rf.commitIndex = i
-			//DPrintf("leader%d更新commitIndex为%d", rf.me, i)
-			rf.unLock()
-			rf.checkCanApply()
-			return
+			DPrintf("leader%d更新commitIndex为%d", rf.me, i)
+			break
 		}
 	}
-	//DPrintf("leader的commitIndex为%d", rf.commitIndex)
-	rf.unLock()
 }
 
 func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	rf.lock()
-	DPrintf("leader【%d】向节点【%d】发送entries，args的term【%d】，leaderID【%d】，prevLogIndex【%d】，prevLogTerm【%d】，entries【%d】，leaderCommit【%d】", rf.me, server, args.Term, args.LeaderId, args.PrevLogIndex, args.PrevLogTerm, args.Entries, args.LeaderCommit)
+	if rf.currentTerm != args.Term || rf.myState != LeaderState{
+		rf.unLock()
+		return
+	}
 	if server == rf.me {
 		rf.nextIndex[server] = args.PrevLogIndex + len(args.Entries) + 1
 		rf.matchIndex[server] = rf.nextIndex[server] - 1
-		DPrintf("在sendAppendEntries中更新节点%d的nextIndex为%d，matchIndex变为%d", server, rf.nextIndex[server], rf.matchIndex[server])
-		rf.unLock()
 		rf.updateCommitIndex()
+		rf.unLock()
 		return
 	}
-	//DPrintf("2A   leader%d向节点%d发送appendEntries请求，请求在%d处添加log\n", rf.me, server, rf.nextIndex[server])
 	rf.unLock()
 	ok := rf.peers[server].Call("Raft.AppendEntries", args, reply)
-	DPrintf("leader【%d】向节点【%d】发送entries  %v", rf.me, server, ok)
 	rf.lock()
-	//DPrintf("rf的log为%v", rf.logEntries)
-	//DPrintf("2A  节点%d向节点%d发送心跳%v", rf.me, server, reply.Success)
+	if len(args.Entries)>0 {
+		terms := make([]int, len(args.Entries))
+		for k, v := range args.Entries {
+			terms[k] = v.Term
+		}
+		DPrintf("leader[%d]向节点[%d]发送entries请求[%v]，appendEntries的args为[%v], reply为[%v]", rf.me, server, ok, terms, reply)
+	} else {
+		DPrintf("leader[%d]向节点[%d]发送heartBeat请求[%v]，appendEntries的args为[%v], reply为[%v]", rf.me, server, ok, args, reply)
+	}
 	if ok {
-		if rf.currentTerm != args.Term {
+		if rf.currentTerm != args.Term || args.PrevLogIndex != rf.nextIndex[server]-1 {
+			DPrintf("leader[%d]向节点[%d]发送的term[%d]过期,现在的term为[%d]", rf.me, server, args.Term, rf.currentTerm)
 			rf.unLock()
 			return
 		}
 		if reply.Success {
 			rf.nextIndex[server] = args.PrevLogIndex + len(args.Entries) + 1
 			rf.matchIndex[server] = rf.nextIndex[server] - 1
-			DPrintf("在leader%d sendAppendEntries中更新节点%d的nextIndex为%d，matchIndex变为%d", rf.me, server, rf.nextIndex[server], rf.matchIndex[server])
-			rf.unLock()
+			DPrintf("leader[%d]更新节点[%d]的nextIndex为[%d]，matchIndex变为[%d]", rf.me, server, rf.nextIndex[server], rf.matchIndex[server])
 			rf.updateCommitIndex()
+			rf.unLock()
 		} else {
 			if args.Term < reply.Term {
+				DPrintf("leader[%d]的term[%d]<reply[%d]的term[%d]，变为了followerState", rf.me, rf.currentTerm, server, reply.Term)
 				rf.currentTerm = reply.Term
 				rf.myState = FollowerState
-				rf.votedFor = server
+				rf.votedFor = -1
 				rf.persist()
 				rf.unLock()
 			} else {
-				DPrintf("reply%d的replyLogTerm%d和replyLogIndex%d", server, reply.ReplyLogTerm, reply.ReplyLogIndex)
 				if reply.ReplyLogTerm != -1 {
 					nextIndex := -1
 					for i := args.PrevLogIndex; i >= 1; i-- {
@@ -97,7 +98,7 @@ func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *Ap
 				} else {
 					rf.nextIndex[server] = reply.ReplyLogIndex + 1
 				}
-				DPrintf("给节点【%d】 sendAppendEntries将nextIndex减少，并重新发送nextIndex%d", server, rf.nextIndex[server]-1)
+				DPrintf("leader[%d]将节点[%d]nextIndex减少，并重新发送nextIndex%d", rf.me, server, rf.nextIndex[server]-1)
 				rf.unLock()
 				//DPrintf("发送给节点%d的entries为%v", server, args.Entries)
 				//ok = rf.sendAppendEntries(server, args, reply)
@@ -119,7 +120,7 @@ func (rf *Raft) sendAppendEntriesToFollower() {
 		term := rf.currentTerm
 		leaderId := rf.me
 		leaderCommit := rf.commitIndex
-
+		DPrintf("leader%d发送AppendEntries给follower，term为%d", rf.me, term)
 		for k, fNextIndex := range rf.nextIndex {
 			args := AppendEntriesArgs{
 				Term:         term,
@@ -129,14 +130,11 @@ func (rf *Raft) sendAppendEntriesToFollower() {
 			}
 
 			if args.PrevLogIndex > 0 {
-				DPrintf("sendAppendEntriesToFollower%d，leader%d的log的长度为%d", k, rf.me, len(rf.logEntries))
 				if args.PrevLogIndex-1 >= len(rf.logEntries) {
-					DPrintf("args的prevLogIndex为%d，log的长度为%d", args.PrevLogIndex, len(rf.logEntries))
 				}
 				args.PrevLogTerm = rf.logEntries[args.PrevLogIndex-1].Term
 			}
 			if len(rf.logEntries) >= fNextIndex {
-				DPrintf("fNextIndex为%d", fNextIndex)
 				args.Entries = rf.logEntries[fNextIndex-1:]
 			}
 			reply := AppendEntriesReply{}
@@ -165,7 +163,6 @@ func (rf *Raft) sendAppendEntriesToFollower() {
 //
 func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	// 不保证该命令提交到Raft的log中，因为leader可能会失败或输掉选举。
-	DPrintf("Start中，向节点【%d】输入命令【%v】", rf.me, command)
 	if rf.killed() {
 		return -1, -1, false
 	}
@@ -176,7 +173,7 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	if !isLeader {
 		return -1, -1, false
 	}
-	DPrintf("start后，将command【%v】提交到leader【%d】的log上，term为【%d】，index为【%d】", command, rf.me, rf.currentTerm, len(rf.logEntries))
+	DPrintf("将command[%v]提交到leader[%d]的log上，term为[%d]，index为[%d]", command, rf.me, rf.currentTerm, len(rf.logEntries))
 	term := rf.currentTerm
 	index := len(rf.logEntries)+1
 	rf.logEntries = append(rf.logEntries, LogEntry{

@@ -80,3 +80,51 @@ server:
 异步地，当lastLogIndex>=follower的nextIndex时，对该follower发送appendEntries请求，index是从nextIndex开始发送。
 
 client发送command给leader，当leaderapplied state machine时，应用到状态机并回复给client。
+
+lab2C：
+
+如果基于Raft的服务器重新启动，它应该在中断的地方恢复服务，所以要存在持久化状态。
+
+真正的实现是在每次Raft发生更改时将持久状态写入磁盘，并在重新启动后从磁盘读取状态。
+
+它从一个Persister对象中保存持久化状态。无论谁调用Raft.Make()，都将提供一个最初保存Raft最近持久化状态的persistent。并且在每次状态改变时，使用它保存它的持久化状态。使用Persister的ReadRaftState和SaveRaftState方法。
+
+完成persist()和readPersist()来保存和恢复持久化状态。需要encode或者serialize状态为字节数组传给Persister。使用labgob encoder。labgob类似于Go的gob编码器，如果试图使用小写字段名编码结构，则会打印错误信息。
+
+在改变持久化状态时，插入对persist的调用。
+
+lab2D:
+
+修改Raft：服务将不时地持久化存储其当前状态的快照，而Raft将丢弃快照之前的日志条目。当一个service远远落后与leader并且需要catch up，service首先安装一个snapshot，然后在创建快照之后从创建快照的点开始重演日志条目。第七节概述了该方案。
+
+从图里理解复制服务和Raft的通信。
+
+为了支持snapshot，需要服务和Raft库之间的接口。
+
+服务调用Snapshot()将其状态的快照传递给Raft。快照包含索引之前的所有信息。快照包含索引之前的所有信息。这意味着相应的Raft peer不再需要日志throung and including index。您的Raft实现应该尽可能地修剪它的日志。要修改Raft代码，以便于只存储日志的尾部。
+
+Raft leader有时必须告诉滞后的Raft peer通过安装一个snapshot来更新她们的状态。需要实现InstallSnapshot RPC senders和handler来安装快照。与AppendEntries相反，后者发送日志条目，由服务逐个应用这些日志条目。
+
+InstallSnapshot rpc是在Raft peers间发送，而服务使用Snapshot/CondInstallSnapshot提供的骨架函数来与Raft通信。
+
+当follower接收并处理InstallSnapshot RPC时，必须使用Raft将包含的快照交给服务。InstallShapshot handler 可以使用applyCh将快照发给服务，通过将snapshot放在ApplyMsg中。service 从applyCh 中读取数据，并使用snapshot调用CondInstallShapshot告诉Raft，该服务正在切换到传入的快照状态，并且Raft应同时更新其日志。
+
+CondInstallSnapshot应该拒绝安装一个snapshot如果它是一个老的snapshot。（如果Raft已经有了处理后的entries，在snapshot的lastIncludedTerm/lastIncludedIndex）。因为Raft可能在处理InstallSnapshot RPC之后，在服务调用CondInstallSnapshot之前，处理其他RPC并在applyCh上发送消息。
+
+Raft不能返回较旧的快照，所以必须拒绝较旧的快照。当实现拒绝快照时，CondInstallSnapshot应该返回false，这样服务就知道它不应该切换到快照。
+
+如果snapshot是最近的，那么Raft应该修建它的日志，持久化新状态，返回true，并且service应该在处理applyCh上的下一条消息之前切换到snapshot。
+
+CondInstallSnapshot设计允许您的实现检查快照是否必须安装在一个地方，并自动地将服务和Raft切换到快照。
+
+#### 任务
+
+修改Raft代码来支持snapshot：实现Snapshot，CondInstallSnapshot和InstallSnapshot RPC以及对Raft的修改（例如，继续使用修剪过的日志。）
+
+Hint：
+
+1. 在单个InstallSnapshot RPC中发送整个快照。不要实现offset机制来分割快照。
+2. Raft必须以允许Go垃圾收集器释放和重用内存的方式丢弃旧的log entries；这要求对丢弃的日志项没有可到达的引用
+3. Raft的日志不能再使用log entries的位置或log的长度来确定log entry的索引；您需要使用独立于log position的索引模式。
+4. 即便当日志呗修剪过，您的实现仍然需要再AppendEntries RPC中的新条目之前正确发送entries的term和index。这可能需要保存和引用最新快照的lastIncludedTerm/LastIncludedIndex（考虑是否应该持久化）。
+5. Raft必须使用SaveStateAndSnapshot将每个快照存储再持久化对象中。

@@ -57,7 +57,7 @@ const (
 	LeaderState
 )
 
-const heartBeatTimeout = 150
+const heartBeatTimeout = 100
 
 //
 // A Go object implementing a single Raft peer.
@@ -140,6 +140,17 @@ func (rf *Raft) persist() {
 	e.Encode(rf.logEntries)
 	data := w.Bytes()
 	rf.persister.SaveRaftState(data)
+	terms := make([]int, 0)
+	for i:= 0; i < len(rf.logEntries); i++ {
+		if i == 0 {
+			terms = append(terms, rf.logEntries[i].Term)
+		} else {
+			if terms[len(terms)-1] != rf.logEntries[i].Term {
+				terms = append(terms, rf.logEntries[i].Term)
+			}
+		}
+	}
+	DPrintf("节点%d的状态为currentTerm为[%d], logEntries为[%v]", rf.me, rf.currentTerm, terms)
 }
 
 //
@@ -238,12 +249,15 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	}
 
 	rf.applyMsgCond = sync.NewCond(&rf.logMu)
-	rf.appendCond = sync.NewCond(&rf.appendMu)
 	// Your initialization code here (2A, 2B, 2C).
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
-	DPrintf("Make中节点%d的persist state中，currentTerm为【%d】，votedFor为【%d】，logEntries为【%v】", rf.me, rf.currentTerm, rf.votedFor, rf.logEntries)
+	terms := make([]int, len(rf.logEntries))
+	for k, v := range rf.logEntries {
+		terms[k] = v.Term
+	}
+	DPrintf("Make中节点%d的persist state中，currentTerm为【%d】，votedFor为【%d】，logEntries为【%v】", rf.me, rf.currentTerm, rf.votedFor, terms)
 	// start ticker goroutine to start elections
 	go rf.ticker()
 	// 需要实现一个单独的长时间运行的goroutine，在applyCh上按顺序发送已提交的日志条目，推进commitIndex的代码需要推动apply 的goroutine

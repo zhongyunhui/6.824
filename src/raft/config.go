@@ -531,7 +531,7 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 				}
 			}
 		}
-
+		//DPrintf("one中的index[%d]", index)
 		if index != -1 {
 			// somebody claimed to be the leader and to have
 			// submitted our command; wait a while for agreement.
@@ -539,8 +539,8 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 			for time.Since(t1).Seconds() < 2 {
 				//DPrintf("index为%d", index)
 				nd, cmd1 := cfg.nCommitted(index)
-				//DPrintf("nCommitted后，得到的nCount[%d], cmd1为【%v】", nd, cmd1)
-				//DPrintf("nd为%d   cmd1为%d", nd, cmd1)
+				DPrintf("nCommitted后，得到的nCount[%d], cmd1为【%v】", nd, cmd1)
+				DPrintf("nd为%d   cmd1为%d", nd, cmd1)
 				if nd > 0 && nd >= expectedServers {
 					// committed
 					//DPrintf("cmd1为%v           原来的cmd为%v", cmd1,cmd)
