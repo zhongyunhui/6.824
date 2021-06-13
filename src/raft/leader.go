@@ -6,7 +6,6 @@ import (
 
 func (rf *Raft) leaderInitialize() {
 	rf.myState = LeaderState
-	rf.timerReset = true
 	DPrintf("Candidate[%d] 获取大多数选票，变为leader", rf.me)
 	// reinitialized after election，初始化nextIndex和matchIndex
 	rf.nextIndex = make([]int, len(rf.peers))
@@ -115,6 +114,7 @@ func (rf *Raft) sendAppendEntriesToFollower() {
 		rf.lock()
 		if rf.myState != LeaderState {
 			rf.unLock()
+			DPrintf("leader[%d]退出sendAppendEntriesToFollower函数", rf.me)
 			return
 		}
 		term := rf.currentTerm

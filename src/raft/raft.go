@@ -23,6 +23,7 @@ import (
 	"log"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	//	"6.824/labgob"
 	"6.824/labrpc"
@@ -92,7 +93,9 @@ type Raft struct {
 	matchIndex []int
 
 	electionTimeout int
-	timerReset      bool
+
+	TimerReset time.Time
+	//timerReset      bool
 	votedCount      int
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
@@ -238,7 +241,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 		persister: persister,
 		me:        me,
 		//2A
-		timerReset:  false,
+		//timerReset:  false,
 		currentTerm: 0,
 		votedFor:    -1,
 		myState:     FollowerState,

@@ -1,6 +1,7 @@
 package raft
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -51,27 +52,28 @@ func (rf *Raft) checkState(state int) bool {
 func (rf *Raft) initTimerReset() {
 	rf.lock()
 	defer rf.unLock()
-	rf.timerReset = false
+	rf.TimerReset = time.Now()
 }
-func (rf *Raft) getTimerReset() bool {
+func (rf *Raft) getTimerReset() time.Time {
 	rf.lock()
 	defer rf.unLock()
-	return rf.timerReset
+	return rf.TimerReset
 }
 
 func (rf *Raft) checkTimerReset(state int) bool {
-	now := time.Now()
-	rf.electionTimeout = RandInt(400, 550)
 	rf.initTimerReset()
-	checkSum := float64(300)
-	checkTime := float64(rf.electionTimeout)/checkSum
-	for i := 0; i < 300; i++ {
-		if rf.getTimerReset() || rf.getMyState() != state{
-			return true
-		}
-		time.Sleep(time.Duration(checkTime*1000) * time.Microsecond)
+	timeout := time.Duration(400+rand.Int31n(150))*time.Millisecond
+	for time.Since(rf.getTimerReset()) <= timeout && rf.getMyState() == state {
+		time.Sleep(time.Millisecond)
 	}
-	DPrintf("节点[%d]的timerout为[%v]", rf.me, time.Since(now))
+	DPrintf("节点[%d]的timerout为[%v]", rf.me, time.Since(rf.getTimerReset()))
+
+	//for i := 0; i < 300; i++ {
+	//	if rf.getTimerReset() || rf.getMyState() != state{
+	//		return true
+	//	}
+	//	time.Sleep(time.Duration(checkTime*1000) * time.Microsecond)
+	//}
 	return false
 }
 

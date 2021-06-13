@@ -1,5 +1,7 @@
 package raft
 
+import "time"
+
 //
 // example RequestVote RPC arguments structure.
 // field names must start with capital letters!
@@ -62,8 +64,6 @@ func (rf *Raft) InstallSnapshot(args *InstallSnapshotArgs, reply *InstallSnapsho
 	if args.Term < rf.currentTerm {
 		return
 	}
-
-
 }
 
 
@@ -82,7 +82,6 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		rf.currentTerm = args.Term
 		rf.votedFor = -1
 		rf.myState = FollowerState
-		rf.timerReset = true
 		rf.persist()
 		DPrintf("RequestVote中节点[%d]变成了follower,当前的term为[%d]", rf.me, rf.currentTerm)
 	}
@@ -99,7 +98,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 			DPrintf("节点[%d]的投票votedFor为[%d]", rf.me, rf.votedFor)
 			rf.votedFor = args.CandidateId
 			reply.VoteGranted = true
-			rf.timerReset = true
+			rf.TimerReset = time.Now()
 			rf.persist()
 			return
 		}
@@ -137,7 +136,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	}
 
 	reply.Success = true
-	rf.timerReset = true
+	rf.TimerReset = time.Now()
 	// 不包含在pervLogIndex matches pervLogTerm
 	if args.PrevLogIndex > len(rf.logEntries) {
 		reply.ReplyLogIndex = len(rf.logEntries)

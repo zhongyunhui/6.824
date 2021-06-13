@@ -1,19 +1,51 @@
 package raft
 
+import (
+	"math/rand"
+	"time"
+)
 
 func (rf *Raft) startElection() {
 	for rf.killed() == false {
 		//DPrintf("节点%d有没有断开连接%v", rf.me, rf.killed())
+		time.Sleep(1 * time.Millisecond)
 		if !rf.checkState(CandidateState) {
 			return
 		}
-		rf.sendRequestVotes()
-		if rf.checkTimerReset(CandidateState) {
-			return
+
+		timeout := time.Duration(400+rand.Int31n(150))*time.Millisecond
+		if time.Since(rf.getTimerReset()) >= timeout {
+			rf.lock()
+			DPrintf("candidate[%d]一轮选举结束,term为[%d]", rf.me, rf.currentTerm)
+			rf.unLock()
+			var args = RequestVoteArgs{}
+			func() {
+				rf.lock()
+				defer rf.unLock()
+				rf.TimerReset = time.Now()
+				rf.currentTerm += 1
+				rf.votedCount = 1
+				rf.persist()
+				args = RequestVoteArgs{
+					Term:        rf.currentTerm,
+					CandidateId: rf.me,
+					LastLogIndex: len(rf.logEntries),
+				}
+				if args.LastLogIndex != 0 {
+					args.LastLogTerm = rf.logEntries[args.LastLogIndex-1].Term
+				}
+			}()
+
+			for k, _ := range rf.peers {
+				if k == rf.me {
+					continue
+				}
+				reply := RequestVoteReply{}
+
+				go rf.sendRequestVote(k, &args, &reply)
+			}
 		}
-		rf.lock()
-		DPrintf("candidate[%d]一轮选举结束,term为[%d]", rf.me, rf.currentTerm)
-		rf.unLock()
+		// 改写到这里，什么时候return出函数
 	}
 }
 
@@ -47,34 +79,6 @@ func (rf *Raft) startElection() {
 // that the caller passes the address of the reply struct with &, not
 // the struct itself.
 //
-func (rf *Raft) sendRequestVotes() {
-	var args = RequestVoteArgs{}
-	func() {
-		rf.lock()
-		defer rf.unLock()
-		rf.currentTerm += 1
-		rf.votedCount = 1
-		rf.persist()
-		args = RequestVoteArgs{
-			Term:        rf.currentTerm,
-			CandidateId: rf.me,
-			LastLogIndex: len(rf.logEntries),
-		}
-		if args.LastLogIndex != 0 {
-			args.LastLogTerm = rf.logEntries[args.LastLogIndex-1].Term
-		}
-	}()
-
-	for k, _ := range rf.peers {
-		if k == rf.me {
-			continue
-		}
-		reply := RequestVoteReply{}
-
-		go rf.sendRequestVote(k, &args, &reply)
-	}
-}
-
 func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *RequestVoteReply) bool {
 	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
 	DPrintf("Candidate[%d]向节点[%d]获取requestVote请求[%v]，请求args为[%v]，响应reply为[%v]", rf.me, server, ok, args, reply)
@@ -91,7 +95,6 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 				rf.currentTerm = reply.Term
 				rf.myState = FollowerState
 				rf.votedFor = -1
-				rf.timerReset = true
 				rf.persist()
 				return
 			}
