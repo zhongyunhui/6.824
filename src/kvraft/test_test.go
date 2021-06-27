@@ -324,14 +324,14 @@ func GenericTest(t *testing.T, part string, nclients int, nservers int, unreliab
 		}
 
 		if crash {
-			// log.Printf("shutdown servers\n")
+			log.Printf("shutdown servers\n")
 			for i := 0; i < nservers; i++ {
 				cfg.ShutdownServer(i)
 			}
 			// Wait for a while for servers to shutdown, since
 			// shutdown isn't a real crash and isn't instantaneous
 			time.Sleep(electionTimeout)
-			// log.Printf("restart servers\n")
+			log.Printf("restart servers\n")
 			// crash and re-start all
 			for i := 0; i < nservers; i++ {
 				cfg.StartServer(i)
@@ -339,7 +339,7 @@ func GenericTest(t *testing.T, part string, nclients int, nservers int, unreliab
 			cfg.ConnectAll()
 		}
 
-		// log.Printf("wait for clients\n")
+		log.Printf("wait for clients\n")
 		for i := 0; i < nclients; i++ {
 			log.Printf("read from clients %d\n", i)
 			j := <-clnts[i]
@@ -395,7 +395,7 @@ func GenericTest(t *testing.T, part string, nclients int, nservers int, unreliab
 // Check that ops are committed fast enough, better than 1 per heartbeat interval
 func GenericTestSpeed(t *testing.T, part string, maxraftstate int) {
 	const nservers = 3
-	const numOps = 900
+	const numOps = 1000
 	cfg := make_config(t, nservers, false, maxraftstate)
 	defer cfg.cleanup()
 
@@ -434,19 +434,19 @@ func GenericTestSpeed(t *testing.T, part string, maxraftstate int) {
 //	GenericTest(t, "3A", 1, 5, false, false, false, -1, false)
 //}
 
-func TestSpeed3A(t *testing.T) {
-	GenericTestSpeed(t, "3A", -1)
-}
-//
+//func TestSpeed3A(t *testing.T) {
+//	GenericTestSpeed(t, "3A", -1)
+//}
+////
 //func TestConcurrent3A(t *testing.T) {
 //	// Test: many clients (3A) ...
 //	GenericTest(t, "3A", 5, 5, false, false, false, -1, false)
 //}
 //
-//func TestUnreliable3A(t *testing.T) {
-//	// Test: unreliable net, many clients (3A) ...
-//	GenericTest(t, "3A", 5, 5, true, false, false, -1, false)
-//}
+func TestUnreliable3A(t *testing.T) {
+	// Test: unreliable net, many clients (3A) ...
+	GenericTest(t, "3A", 5, 5, true, false, false, -1, false)
+}
 //
 //func TestUnreliableOneKey3A(t *testing.T) {
 //	const nservers = 3

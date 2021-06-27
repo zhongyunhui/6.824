@@ -112,6 +112,7 @@ func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
 	}()
 	timer := time.NewTimer(2000 * time.Millisecond)
 	defer timer.Stop()
+	DPrintf("等待序列[%v]................", op.SeqId)
 	select {
 	case <- getRPC.committed:
 		if getRPC.wrongLeader {
@@ -261,7 +262,7 @@ func (kv *KVServer) applier(applyCh chan raft.ApplyMsg) {
 			if m.SnapshotValid {
 				// do some snapshot
 			} else if m.CommandValid {
-				DPrintf("ggggggggggggggggggg")
+				NewMonitor()
 				op := m.Command.(Op)
 				DPrintf("server[%d]已经提交了该命令，op[%v]", kv.me, op)
 				index := m.CommandIndex
@@ -275,40 +276,42 @@ func (kv *KVServer) applier(applyCh chan raft.ApplyMsg) {
 						if rpcRequest.op != op {
 							DPrintf("server[%d]已经提交了Seq序列[%d]命令[%v]，但是他的状态已经被改变，在提交前已经不是leader", kv.me, op.SeqId, op)
 							rpcRequest.wrongLeader = true
-						} else {
-							if !existsSeq || prevseqId < op.SeqId {
-								value, existsKey := kv.datas[op.Key]
-								if op.TypeOp == GET {
-									if existsKey {
-										rpcRequest.existsKey = true
-										rpcRequest.value = value
-										DPrintf("server[%d]已经提交了Seq序列[%d]Get命令[%v]，得到的值为[%v]", kv.me, op.SeqId,op, value)
-									} else {
-										DPrintf("server[%d]已经提交了Seq序列[%d]Get命令[%v]，但是没有key[%v]", kv.me, op.SeqId,op, op.Key)
-										rpcRequest.existsKey = false
-									}
-								}
-
-								if op.TypeOp == PUT {
-									DPrintf("server[%d]已经提交了Seq序列[%d]Put命令[%v]", kv.me, op.SeqId,op)
-									kv.datas[op.Key] = op.Value
-								}
-
-								if op.TypeOp == APPEND {
-									DPrintf("server[%d]已经提交了Seq序列[%d]Append命令[%v]", kv.me, op.SeqId,op)
-									if existsKey {
-										kv.datas[op.Key] = value + op.Value
-									} else {
-										kv.datas[op.Key] = op.Value
-									}
-								}
-							} else if existsRPC {
-								DPrintf("server[%d]已经完成了这次RPC，跳过此次RPC过程Seq序列[%d]，命令[%v]", kv.me, op.SeqId,op)
-								rpcRequest.escaped = true
-							}
 						}
+					}
 
-						kv.seqMap[op.ClientId] = op.SeqId
+
+					if !existsSeq || prevseqId < op.SeqId {
+						switch op.TypeOp {
+						case PUT:
+							DPrintf("server[%d]已经提交了Seq序列[%d]Put命令[%v]", kv.me, op.SeqId,op)
+							kv.datas[op.Key] = op.Value
+						case APPEND:
+							if value, existsKey := kv.datas[op.Key]; existsKey {
+								kv.datas[op.Key] = value + op.Value
+							} else {
+								kv.datas[op.Key] = op.Value
+							}
+							DPrintf("server[%d]已经提交了Seq序列[%d]Put命令[%v]", kv.me, op.SeqId,op)
+						}
+					} else if existsRPC {
+						DPrintf("server[%d]已经完成了这次RPC，跳过此次RPC过程Seq序列[%d]，命令[%v]", kv.me, op.SeqId,op)
+						rpcRequest.escaped = true
+					}
+					if op.TypeOp == GET && existsRPC{
+						if value, existsKey := kv.datas[op.Key]; existsKey {
+							rpcRequest.value = value
+							rpcRequest.existsKey = true
+							DPrintf("server[%d]已经提交了Seq序列[%d]Get命令[%v]，得到的值为[%v]", kv.me, op.SeqId,op, value)
+
+						} else {
+							rpcRequest.existsKey = false
+							DPrintf("server[%d]已经提交了Seq序列[%d]Get命令[%v]，但是没有key[%v]", kv.me, op.SeqId,op, op.Key)
+						}
+					}
+
+
+					kv.seqMap[op.ClientId] = op.SeqId
+					if existsRPC {
 						rpcRequest.committed <- true
 						close(rpcRequest.committed)
 					}

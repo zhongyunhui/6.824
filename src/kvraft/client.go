@@ -4,6 +4,7 @@ import (
 	"6.824/labrpc"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 import "crypto/rand"
 import "math/big"
@@ -53,6 +54,7 @@ func MakeClerk(servers []*labrpc.ClientEnd) *Clerk {
 	ck := new(Clerk)
 	ck.servers = servers
 	ck.clientId = nrand()
+	ck.leaderId = 0
 	// You'll have to add code here.
 	return ck
 }
@@ -76,11 +78,11 @@ func (ck *Clerk) Get(key string) string {
 		ClientId: ck.clientId,
 	}
 	DPrintf("client[%d]发送的Get   RPC序列为[%d]", ck.clientId, ck.seqId)
-	reply := GetReply{}
+
 	leaderId := ck.getLeader()
 	for {
+		reply := GetReply{}
 		ok := ck.servers[leaderId].Call("KVServer.Get", &args, &reply)
-
 		if ok {
 			switch reply.Err {
 			case ErrNoKey:
@@ -92,11 +94,14 @@ func (ck *Clerk) Get(key string) string {
 			case ErrWrongLeader:
 				DPrintf("client[%d]发送的Get   RPC序列为[%d],收到server[%d]的reply为[%v]", ck.clientId, ck.seqId,  ck.leaderId,ErrWrongLeader)
 				leaderId = ck.changeLeader()
+				time.Sleep(1 * time.Millisecond)
 			}
 		} else {
 			DPrintf("client[%d]发送的Get   RPC序列为[%d],收到server[%d]的reply超时", ck.clientId, ck.seqId,  ck.leaderId)
 			leaderId = ck.changeLeader()
+			time.Sleep(1 * time.Millisecond)
 		}
+
 	}
 	// You will have to modify this function.
 }
@@ -119,9 +124,10 @@ func (ck *Clerk) PutAppend(key string, value string, op string) {
 		SeqId:    atomic.AddInt64(&ck.seqId, 1),
 		ClientId: ck.clientId,
 	}
-	reply := PutAppendReply{}
+
 	leaderId := ck.getLeader()
 	for {
+		reply := PutAppendReply{}
 		ok := ck.servers[leaderId].Call("KVServer.PutAppend", &args, &reply)
 
 		if ok {
@@ -130,13 +136,16 @@ func (ck *Clerk) PutAppend(key string, value string, op string) {
 			case ErrWrongLeader:
 				DPrintf("client[%d]发送的[%v]   RPC序列为[%d],收到server[%d]的reply为[%v]", ck.clientId, op, ck.seqId,  ck.leaderId,ErrWrongLeader)
 				leaderId = ck.changeLeader()
+				time.Sleep(1 * time.Millisecond)
 			case OK:
 				DPrintf("client[%d]发送的[%v]   RPC序列为[%d],收到server[%d]的reply为[%v]", ck.clientId, op, ck.seqId,  ck.leaderId,OK)
 				return
 			}
 		} else {
 			leaderId = ck.changeLeader()
+			time.Sleep(1 * time.Millisecond)
 		}
+
 	}
 
 
