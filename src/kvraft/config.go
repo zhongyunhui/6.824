@@ -311,7 +311,7 @@ func (cfg *config) StartServer(i int) {
 		cfg.saved[i] = raft.MakePersister()
 	}
 	cfg.mu.Unlock()
-
+	DPrintf("开始启动kvserver[%d]",i)
 	cfg.kvservers[i] = StartKVServer(ends, i, cfg.saved[i], cfg.maxraftstate)
 
 	kvsvc := labrpc.MakeService(cfg.kvservers[i])

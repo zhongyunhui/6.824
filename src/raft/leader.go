@@ -1,6 +1,7 @@
 package raft
 
 import (
+	"sort"
 	"time"
 )
 
@@ -11,28 +12,52 @@ func (rf *Raft) leaderInitialize() {
 	rf.nextIndex = make([]int, len(rf.peers))
 	rf.matchIndex = make([]int, len(rf.peers))
 	for i:= 0; i < len(rf.nextIndex); i++ {
-		rf.nextIndex[i] = len(rf.logEntries)+1
-		rf.matchIndex[i] = 0
+		rf.nextIndex[i] = rf.lastIncludedIndex+len(rf.logEntries)+1
+		rf.matchIndex[i] = rf.lastIncludedIndex
 	}
 	DPrintf("leader[%d]进行初始化完毕，nextIndex初始化为[%d]", rf.me, rf.nextIndex[0])
 }
 
 func (rf *Raft) updateCommitIndex() {
-	lenLog:=len(rf.logEntries)
+	matchIndexs := make([]int, len(rf.matchIndex))
+	for k, v := range rf.matchIndex {
+		matchIndexs[k] = v
+	}
+	sort.Ints(matchIndexs)
 
-	for i := rf.commitIndex+1; i <= lenLog; i++ {
-		count := 0
-		for _, v := range rf.matchIndex {
-			if v >= i {
-				count++
+	commitIndex := matchIndexs[len(rf.peers)/2]
+	DPrintf("CommitIndex[%d], matchIndexs[%v]", commitIndex, matchIndexs)
+	_, _, _, term := rf.getLogEntry(commitIndex)
+	if commitIndex > rf.commitIndex && term == rf.currentTerm {
+		rf.commitIndex = commitIndex
+		DPrintf("leader%d更新commitIndex为%d", rf.me, rf.commitIndex)
+	}
+}
+
+func (rf *Raft) sendInstallSnapshot(server int, args *InstallSnapshotArgs, reply *InstallSnapshotReply) bool {
+	DPrintf("leader[%d]向节点[%d]发送InstallSnapshot RPC请求", rf.me, server)
+	ok := rf.peers[server].Call("Raft.InstallSnapshot", args, reply)
+	func(){
+		rf.lock()
+		defer rf.unLock()
+		DPrintf("leader[%d]向节点[%d]发送InstallSnapshot RPC请求[%v]", rf.me, server, ok)
+		if ok {
+			if args.Term != rf.currentTerm || rf.myState != LeaderState {
+				return
+			}
+			if reply.Term > rf.currentTerm {
+				DPrintf("InstallSnapshot中leader[%d]的term[%d]<reply[%d]的term[%d]，变为了followerState", rf.me, rf.currentTerm, server, reply.Term)
+				rf.currentTerm = reply.Term
+				rf.myState = FollowerState
+				rf.votedFor = -1
+				rf.persist()
+			} else {
+				rf.nextIndex[server] = args.LastIncludedIndex + 1
+				rf.matchIndex[server] = rf.nextIndex[server] - 1
 			}
 		}
-		if count > len(rf.peers)/2 && rf.logEntries[i-1].Term == rf.currentTerm {
-			rf.commitIndex = i
-			DPrintf("leader%d更新commitIndex为%d", rf.me, i)
-			break
-		}
-	}
+	}()
+	return ok
 }
 
 func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) {
@@ -83,8 +108,9 @@ func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *Ap
 			} else {
 				if reply.ReplyLogTerm != -1 {
 					nextIndex := -1
-					for i := args.PrevLogIndex; i >= 1; i-- {
-						if rf.logEntries[i-1].Term == reply.ReplyLogTerm {
+					for i := args.PrevLogIndex; i > rf.lastIncludedIndex; i-- {
+						_, _, _, term := rf.getLogEntry(i)
+						if term == reply.ReplyLogTerm {
 							nextIndex = i
 							break
 						}
@@ -120,6 +146,8 @@ func (rf *Raft) sendAppendEntriesToFollower() {
 		term := rf.currentTerm
 		leaderId := rf.me
 		leaderCommit := rf.commitIndex
+		lastIncludedIndex := rf.lastIncludedIndex
+		lastIncludedTerm := rf.lastIncludedTerm
 		DPrintf("leader%d发送AppendEntries给follower，term为%d", rf.me, term)
 		for k, fNextIndex := range rf.nextIndex {
 			args := AppendEntriesArgs{
@@ -129,13 +157,30 @@ func (rf *Raft) sendAppendEntriesToFollower() {
 				PrevLogIndex: fNextIndex-1, // 紧挨着新entry的logIndex
 			}
 
-			if args.PrevLogIndex > 0 {
-				if args.PrevLogIndex-1 >= len(rf.logEntries) {
+			if args.PrevLogIndex > rf.lastIncludedIndex {
+				ok, _, _, term := rf.getLogEntry(args.PrevLogIndex)
+				if ok {
+					args.PrevLogTerm = term
 				}
-				args.PrevLogTerm = rf.logEntries[args.PrevLogIndex-1].Term
+			} else if args.PrevLogIndex == rf.lastIncludedIndex {
+				args.PrevLogTerm = rf.lastIncludedTerm
+			} else {
+				DPrintf("args.PrevLogIndex为[%d], rf.lastIncludedIndex为[%d]", args.PrevLogIndex, rf.lastIncludedIndex)
+				snapshotArgs := InstallSnapshotArgs{
+					Term:              term,
+					LeaderId:          rf.me,
+					LastIncludedIndex: lastIncludedIndex,
+					LastIncludedTerm:  lastIncludedTerm,
+					Data:              rf.persister.ReadSnapshot(),
+				}
+				reply:=InstallSnapshotReply{}
+				rf.unLock()
+				go rf.sendInstallSnapshot(k, &snapshotArgs, &reply)
+				rf.lock()
+				continue
 			}
-			if len(rf.logEntries) >= fNextIndex {
-				args.Entries = rf.logEntries[fNextIndex-1:]
+			if rf.lastIncludedIndex+len(rf.logEntries) >= fNextIndex {
+				args.Entries = rf.logEntries[fNextIndex-rf.lastIncludedIndex-1:]
 			}
 			reply := AppendEntriesReply{}
 			rf.unLock()
@@ -175,7 +220,7 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	}
 	DPrintf("将command[%v]提交到leader[%d]的log上，term为[%d]，index为[%d]", command, rf.me, rf.currentTerm, len(rf.logEntries))
 	term := rf.currentTerm
-	index := len(rf.logEntries)+1
+	index := rf.lastIncludedIndex+len(rf.logEntries)+1
 	rf.logEntries = append(rf.logEntries, LogEntry{
 		Command: command,
 		Term:    rf.currentTerm,
