@@ -111,7 +111,7 @@ func make_config(t *testing.T, n int, unreliable bool, snapshot bool) *config {
 func (cfg *config) crash1(i int) {
 	cfg.disconnect(i)
 	cfg.net.DeleteServer(i) // disable client connections to the server.
-
+	DPrintf("============将节点%d摧毁==========", i)
 	cfg.mu.Lock()
 	defer cfg.mu.Unlock()
 
@@ -188,8 +188,9 @@ const SnapShotInterval = 10
 func (cfg *config) applierSnap(i int, applyCh chan ApplyMsg) {
 	lastApplied := 0
 	for m := range applyCh {
+		// 如果是snapshotvalid，则调用CondInstallSnapshot来保存snapshot
 		if m.SnapshotValid {
-			//DPrintf("Installsnapshot %v %v\n", m.SnapshotIndex, lastApplied)
+			DPrintf("Installsnapshot %v %v\n", m.SnapshotIndex, lastApplied)
 			cfg.mu.Lock()
 			if cfg.rafts[i].CondInstallSnapshot(m.SnapshotTerm,
 				m.SnapshotIndex, m.Snapshot) {
@@ -205,6 +206,7 @@ func (cfg *config) applierSnap(i int, applyCh chan ApplyMsg) {
 			}
 			cfg.mu.Unlock()
 		} else if m.CommandValid && m.CommandIndex > lastApplied {
+			// 如果commandIndex>lastApplied，每10个index时候则进行一次snapshot的备份
 			//DPrintf("apply %v lastApplied %v\n", m.CommandIndex, lastApplied)
 			cfg.mu.Lock()
 			err_msg, prevok := cfg.checkLogs(i, m)
@@ -219,6 +221,7 @@ func (cfg *config) applierSnap(i int, applyCh chan ApplyMsg) {
 				// holding locks...
 			}
 			lastApplied = m.CommandIndex
+			DPrintf("lastApplied为[%d]", lastApplied)
 			if (m.CommandIndex+1)%SnapShotInterval == 0 {
 				w := new(bytes.Buffer)
 				e := labgob.NewEncoder(w)
@@ -231,8 +234,7 @@ func (cfg *config) applierSnap(i int, applyCh chan ApplyMsg) {
 			// commands. Old command may never happen,
 			// depending on the Raft implementation, but
 			// just in case.
-			// DPrintf("Ignore: Index %v lastApplied %v\n", m.CommandIndex, lastApplied)
-
+			DPrintf("Ignore: Index %v lastApplied %v\n", m.CommandIndex, lastApplied)
 		}
 	}
 }
@@ -531,7 +533,7 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 				}
 			}
 		}
-		//DPrintf("one中的index[%d]", index)
+		DPrintf("one中的index[%d]", index)
 		if index != -1 {
 			// somebody claimed to be the leader and to have
 			// submitted our command; wait a while for agreement.
@@ -539,8 +541,6 @@ func (cfg *config) one(cmd interface{}, expectedServers int, retry bool) int {
 			for time.Since(t1).Seconds() < 2 {
 				//DPrintf("index为%d", index)
 				nd, cmd1 := cfg.nCommitted(index)
-				DPrintf("nCommitted后，得到的nCount[%d], cmd1为【%v】", nd, cmd1)
-				DPrintf("nd为%d   cmd1为%d", nd, cmd1)
 				if nd > 0 && nd >= expectedServers {
 					// committed
 					//DPrintf("cmd1为%v           原来的cmd为%v", cmd1,cmd)

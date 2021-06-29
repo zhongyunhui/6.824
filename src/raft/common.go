@@ -1,7 +1,6 @@
 package raft
 
 import (
-	"math/rand"
 	"time"
 )
 
@@ -13,30 +12,49 @@ func (rf *Raft) unLock() {
 	rf.mu.Unlock()
 }
 
-func (rf *Raft) sendApplyMsg(applyCh chan ApplyMsg) {
-	for !rf.killed() {
-		time.Sleep(10 * time.Millisecond)
-		applyMsgs := make([]ApplyMsg, 0)
+func (rf *Raft) getTerm() int {
+	rf.lock()
+	defer rf.unLock()
+	return rf.currentTerm
+}
 
+func (rf *Raft) sendCommandApplyMsg() {
+	for !rf.killed() {
+		applyMsgs := make([]ApplyMsg, 0)
 
 		func() {
 			rf.lock()
 			defer rf.unLock()
 			for rf.commitIndex > rf.lastApplied {
-				DPrintf("节点[%d]向客户端发送消息，它的commitIndex为[%d],lastApplied为[%d]", rf.me, rf.commitIndex, rf.lastApplied)
 				rf.lastApplied++
+				DPrintf("raft[%d]send command to server, commitIndex为[%d],lastApplied为[%d]", rf.me, rf.commitIndex, rf.lastApplied)
+				_, _,logEntry := rf.getLogEntry(rf.lastApplied)
 				applyMsgs = append(applyMsgs, ApplyMsg{
 					CommandValid:  true,
-					Command:       rf.logEntries[rf.lastApplied-1].Command,
+					Command:       logEntry.Command,
 					CommandIndex:  rf.lastApplied,
 				})
 			}
 		}()
 		for _, v := range applyMsgs {
-			applyCh <- v
+			rf.applyCh <- v
 		}
+		rf.lock()
+		rf.applyMsgCond.Wait()
+		rf.unLock()
 	}
 }
+
+func (rf *Raft) getLogEntry(index int) (bool, int, LogEntry) {
+	logIndex := index - rf.lastIncludedIndex
+	if logIndex > len(rf.logEntries) || logIndex <= 0 {
+		return false, logIndex, LogEntry{}
+	}
+	logEntry := rf.logEntries[logIndex-1]
+	return true, logIndex, logEntry
+}
+
+
 
 func (rf *Raft) checkState(state int) bool {
 	rf.lock()
@@ -52,29 +70,13 @@ func (rf *Raft) checkState(state int) bool {
 func (rf *Raft) initTimerReset() {
 	rf.lock()
 	defer rf.unLock()
-	rf.TimerReset = time.Now()
+	rf.timerReset = time.Now()
 }
+
 func (rf *Raft) getTimerReset() time.Time {
 	rf.lock()
 	defer rf.unLock()
-	return rf.TimerReset
-}
-
-func (rf *Raft) checkTimerReset(state int) bool {
-	rf.initTimerReset()
-	timeout := time.Duration(400+rand.Int31n(150))*time.Millisecond
-	for time.Since(rf.getTimerReset()) <= timeout && rf.getMyState() == state {
-		time.Sleep(time.Millisecond)
-	}
-	DPrintf("节点[%d]的timerout为[%v]", rf.me, time.Since(rf.getTimerReset()))
-
-	//for i := 0; i < 300; i++ {
-	//	if rf.getTimerReset() || rf.getMyState() != state{
-	//		return true
-	//	}
-	//	time.Sleep(time.Duration(checkTime*1000) * time.Microsecond)
-	//}
-	return false
+	return rf.timerReset
 }
 
 func (rf *Raft) getMyState() int{
@@ -97,7 +99,7 @@ func (rf *Raft) ticker() {
 		case LeaderState:
 			// 发送心跳
 			//DPrintf("2A   节点%d变成leader\n", rf.me)
-			rf.sendAppendEntriesToFollower()
+			rf.LeaderLoop()
 			break
 		default:
 			panic("不合法的state")

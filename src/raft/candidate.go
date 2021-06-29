@@ -7,32 +7,35 @@ import (
 
 func (rf *Raft) startElection() {
 	for rf.killed() == false {
-		//DPrintf("节点%d有没有断开连接%v", rf.me, rf.killed())
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(time.Millisecond)
 		if !rf.checkState(CandidateState) {
 			return
 		}
 
-		timeout := time.Duration(400+rand.Int31n(150))*time.Millisecond
+		timeout := time.Duration(300+rand.Int31n(150))*time.Millisecond
+
 		if time.Since(rf.getTimerReset()) >= timeout {
-			rf.lock()
-			DPrintf("candidate[%d]一轮选举结束,term为[%d]", rf.me, rf.currentTerm)
-			rf.unLock()
+
+
 			var args = RequestVoteArgs{}
 			func() {
 				rf.lock()
 				defer rf.unLock()
-				rf.TimerReset = time.Now()
+				rf.timerReset = time.Now()
 				rf.currentTerm += 1
 				rf.votedCount = 1
 				rf.persist()
+				DPrintf("candidate[%d]一轮选举结束,term为[%d]", rf.me, rf.currentTerm)
 				args = RequestVoteArgs{
 					Term:        rf.currentTerm,
 					CandidateId: rf.me,
-					LastLogIndex: len(rf.logEntries),
+					LastLogIndex: rf.lastIncludedIndex+len(rf.logEntries),
 				}
-				if args.LastLogIndex != 0 {
-					args.LastLogTerm = rf.logEntries[args.LastLogIndex-1].Term
+				if len(rf.logEntries) > 0 {
+					_, _, logEntry := rf.getLogEntry(args.LastLogIndex)
+					args.LastLogTerm = logEntry.Term
+				} else {
+					args.LastLogTerm = rf.lastIncludedTerm
 				}
 			}()
 
@@ -45,7 +48,6 @@ func (rf *Raft) startElection() {
 				go rf.sendRequestVote(k, &args, &reply)
 			}
 		}
-		// 改写到这里，什么时候return出函数
 	}
 }
 
@@ -81,17 +83,15 @@ func (rf *Raft) startElection() {
 //
 func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *RequestVoteReply) bool {
 	ok := rf.peers[server].Call("Raft.RequestVote", args, reply)
-	DPrintf("Candidate[%d]向节点[%d]获取requestVote请求[%v]，请求args为[%v]，响应reply为[%v]", rf.me, server, ok, args, reply)
+	DPrintf("Candidate[%d] sendRequestVote to server[%d], args[%v], reply[%v]", rf.me, server, args, reply)
 	if ok {
 		func(){
 			rf.lock()
 			defer rf.unLock()
 			if rf.myState != CandidateState || rf.currentTerm != args.Term {
-				DPrintf("Candidate[%d]的状态或term已经改变", rf.me)
 				return
 			}
 			if reply.Term > rf.currentTerm {
-				DPrintf("Candidate[%d]的term[%d]小于reply的term[%d]，从candidate变成了follower", rf.me, rf.currentTerm, reply.Term)
 				rf.currentTerm = reply.Term
 				rf.myState = FollowerState
 				rf.votedFor = -1

@@ -1,0 +1,353 @@
+将客户端b-DMdSLryKU7GiUkjwzW和服务器0连接
+将客户端OuqBLB6sdC3jPSmct0Vj和服务器1连接
+将客户端C-OL6i8mCjMNVQE7RhOj和服务器2连接
+将客户端HfvtyBdUb6Makj_Gp8vV和服务器3连接
+将客户端GIWmUreLoXI9IHITpky8和服务器4连接
+2021/06/23 10:02:08 开始启动kvserver[0]
+2021/06/23 10:02:08 启动kvserver[0]
+将客户端P6pYXsu0ULd720RhcoBc和服务器0连接
+将客户端AWCEGJmkzOKE1SsE7Ba5和服务器1连接
+将客户端Z1cX7X7o-YYbOqmKGJKx和服务器2连接
+将客户端8zBLfoaAJJrdjwKZ0nk_和服务器3连接
+将客户端i7wmCAAzIAehRQ0a5BCF和服务器4连接
+2021/06/23 10:02:08 开始启动kvserver[1]
+2021/06/23 10:02:08 启动kvserver[1]
+将客户端72PSl-eTO7BH-KRiWf24和服务器0连接
+将客户端TwZa9vtqUbij5hZCC-5n和服务器1连接
+将客户端o2v_jGP1eIDMBcD90oc6和服务器2连接
+将客户端W2latA0DUf3NEz7qUGRZ和服务器3连接
+将客户端EGl-Br7VgpRpd3BeqZsz和服务器4连接
+2021/06/23 10:02:08 开始启动kvserver[2]
+2021/06/23 10:02:08 启动kvserver[2]
+将客户端vQmjCLTy-vpzbo12GNYi和服务器0连接
+将客户端0le_4gdzluZr01_tGcV_和服务器1连接
+将客户端A-eV_Q3Wbv62GNj1te1y和服务器2连接
+将客户端4Kdohvjkbaee7FtKOnQp和服务器3连接
+将客户端291KPjE2Xm5o4W8Wua4J和服务器4连接
+2021/06/23 10:02:08 开始启动kvserver[3]
+2021/06/23 10:02:08 启动kvserver[3]
+将客户端hsiKC4vEI4nSPpXt5NgL和服务器0连接
+将客户端Toig3DtRZHmhXBu4tGOx和服务器1连接
+将客户端-Ou7Ib8QYUGs1myl-aOx和服务器2连接
+将客户端Cf4eZxm00o5x5D9OdYNS和服务器3连接
+将客户端zeK_lxu3okgkdfCJLtK4和服务器4连接
+2021/06/23 10:02:08 开始启动kvserver[4]
+2021/06/23 10:02:08 启动kvserver[4]
+Test: one client (3A) ...
+将客户端_jxF-NxfGAFNj4Xu5i2v和服务器0连接
+将客户端T9YYDffvIh5zF3oT2nbs和服务器1连接
+将客户端4JoO083puBRf0u2-XAoe和服务器2连接
+将客户端XvL7gnrlVXWpgMqZdrSu和服务器3连接
+将客户端WY44ev0m8kgp5EowHZ7s和服务器4连接
+2021/06/23 10:02:08 Iteration 0
+将客户端W3sOLGGk3Aq6sPf4FBNd和服务器0连接
+将客户端jUK3vijxTV5AqDF_FKpY和服务器1连接
+将客户端Tyuzs6I3vjUCZIwkfapv和服务器2连接
+将客户端nX2cjrqkgKlrqukvR9uu和服务器3连接
+将客户端R6Rp7trqMufTvQtBsqHF和服务器4连接
+2021/06/23 10:02:08 生成[1]个clients，并等待它们完成
+2021/06/23 10:02:08 输入不随机的cli[0]
+2021/06/23 10:02:08 向client[0]put key[0] value[]
+2021/06/23 10:02:08 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:08 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:08 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:08 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[4]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[0]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[1]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[1]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[1]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[2]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[0]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[2]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[3]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[2]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[3]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[4]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+2021/06/23 10:02:09 server[3]接收到了来自client[3486565534669666200]的PutAppend请求，args为[&{0  Put 1 3486565534669666200}], reply为[&{}]
+2021/06/23 10:02:09 client向节点[4]发送putAppend，reply为wrongLeader
+2021/06/23 10:02:09 client向节点[0]发送putAppend，args为[{0  Put 1 3486565534669666200}]
+signal: interrupt
+FAIL	6.824/kvraft	0.426s

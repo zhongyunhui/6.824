@@ -434,19 +434,19 @@ func GenericTestSpeed(t *testing.T, part string, maxraftstate int) {
 //	GenericTest(t, "3A", 1, 5, false, false, false, -1, false)
 //}
 
-//func TestSpeed3A(t *testing.T) {
-//	GenericTestSpeed(t, "3A", -1)
-//}
+func TestSpeed3A(t *testing.T) {
+	GenericTestSpeed(t, "3A", -1)
+}
 ////
 //func TestConcurrent3A(t *testing.T) {
 //	// Test: many clients (3A) ...
 //	GenericTest(t, "3A", 5, 5, false, false, false, -1, false)
 //}
 //
-func TestUnreliable3A(t *testing.T) {
-	// Test: unreliable net, many clients (3A) ...
-	GenericTest(t, "3A", 5, 5, true, false, false, -1, false)
-}
+//func TestUnreliable3A(t *testing.T) {
+//	// Test: unreliable net, many clients (3A) ...
+//	GenericTest(t, "3A", 5, 5, true, false, false, -1, false)
+//}
 //
 //func TestUnreliableOneKey3A(t *testing.T) {
 //	const nservers = 3

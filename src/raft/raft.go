@@ -18,15 +18,14 @@ package raft
 //
 
 import (
-	"6.824/labgob"
-	"bytes"
-	"log"
-	"sync"
-	"sync/atomic"
-	"time"
+"6.824/labgob"
+"bytes"
+"sync"
+"sync/atomic"
+"time"
 
-	//	"6.824/labgob"
-	"6.824/labrpc"
+//	"6.824/labgob"
+"6.824/labrpc"
 )
 
 //
@@ -58,7 +57,7 @@ const (
 	LeaderState
 )
 
-const heartBeatTimeout = 100
+const heartBeatTimeout = 150
 
 //
 // A Go object implementing a single Raft peer.
@@ -71,11 +70,8 @@ type Raft struct {
 	me        int                 // this peer's index into peers[]
 	dead      int32               // set by Kill()
 
-	logMu        sync.Mutex
 	applyMsgCond *sync.Cond
 
-	appendMu  sync.Mutex
-	appendCond *sync.Cond
 
 
 	myState      int
@@ -88,15 +84,20 @@ type Raft struct {
 	commitIndex int
 	lastApplied int
 	// leader的可变状态
-	minNextIndex int
 	nextIndex  []int
 	matchIndex []int
 
-	electionTimeout int
+	// lab 2D
+	lastIncludedIndex int
+	lastIncludedTerm int
+	snapshot []byte
 
-	TimerReset time.Time
+	hearBeatReset time.Time
+	timerReset time.Time
 	//timerReset      bool
 	votedCount      int
+
+	applyCh  chan ApplyMsg
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
@@ -141,41 +142,45 @@ func (rf *Raft) persist() {
 	e.Encode(rf.currentTerm)
 	e.Encode(rf.votedFor)
 	e.Encode(rf.logEntries)
+	e.Encode(rf.lastIncludedIndex)
+	e.Encode(rf.lastIncludedTerm)
 	data := w.Bytes()
 	rf.persister.SaveRaftState(data)
-	terms := make([]int, 0)
-	for i:= 0; i < len(rf.logEntries); i++ {
-		if i == 0 {
-			terms = append(terms, rf.logEntries[i].Term)
-		} else {
-			if terms[len(terms)-1] != rf.logEntries[i].Term {
-				terms = append(terms, rf.logEntries[i].Term)
-			}
-		}
-	}
-	DPrintf("节点%d的状态为currentTerm为[%d], logEntries为[%v]", rf.me, rf.currentTerm, terms)
+
 }
 
 //
 // restore previously persisted state.
 //
-func (rf *Raft) readPersist(data []byte) {
-	if data == nil || len(data) < 1 { // bootstrap without any state?
+func (rf *Raft) readPersist(state []byte) {
+	if state == nil || len(state) < 1 { // bootstrap without any state?
 		return
 	}
-	DPrintf("持久化中找到状态")
-	r := bytes.NewBuffer(data)
+	r := bytes.NewBuffer(state)
 	d := labgob.NewDecoder(r)
+
 	var currentTerm int
 	var votedFor int
 	var logEntries []LogEntry
-	if d.Decode(&currentTerm) != nil || d.Decode(&votedFor) != nil || d.Decode(&logEntries) != nil {
-		log.Panic("decode error")
-	} else {
-		rf.currentTerm = currentTerm
-		rf.votedFor = votedFor
-		rf.logEntries = logEntries
-	}
+	var lastIncludedIndex int
+	var lastIncludedTerm int
+
+	d.Decode(&currentTerm)
+	d.Decode(&votedFor)
+	d.Decode(&logEntries)
+	d.Decode(&lastIncludedIndex)
+	d.Decode(&lastIncludedTerm)
+
+
+	rf.currentTerm = currentTerm
+	rf.votedFor = votedFor
+	rf.logEntries = logEntries
+	rf.lastIncludedTerm = lastIncludedTerm
+	rf.lastIncludedIndex = lastIncludedIndex
+	//if d.Decode(&currentTerm) != nil || d.Decode(&votedFor) != nil || d.Decode(&logEntries) != nil {
+	//	log.Panic("decode error")
+	//} else {
+	//}
 }
 
 //
@@ -183,10 +188,21 @@ func (rf *Raft) readPersist(data []byte) {
 // have more recent info since it communicate the snapshot on applyCh.
 //
 func (rf *Raft) CondInstallSnapshot(lastIncludedTerm int, lastIncludedIndex int, snapshot []byte) bool {
-
+	rf.lock()
+	defer rf.unLock()
+	if rf.lastIncludedIndex >= lastIncludedIndex {
+		DPrintf("raft[%d] receive condInstallSnapshot request, raft[%d]'s lastIncludedIndex[%d] 》= lastIncludedIndex[%d]", rf.me, rf.me, rf.lastIncludedIndex, lastIncludedIndex)
+		return false
+	} else {
+		rf.lastIncludedTerm = lastIncludedTerm
+		rf.lastIncludedIndex = lastIncludedIndex
+		rf.commitIndex = lastIncludedIndex   // 将commitIndex和lastApplied变为lastIncludedIndex
+		rf.lastApplied = lastIncludedIndex
+		DPrintf("raft[%d] receive condInstallSnapshot request, update rf.lastIncludedTerm[%d], rf.lastIncludedIndex[%d]", rf.me, rf.lastIncludedTerm, lastIncludedIndex)
+		rf.SaveStateAndSnapshot(snapshot)
+		return true
+	}
 	// Your code here (2D).
-
-	return true
 }
 
 // the service says it has created a snapshot that has
@@ -195,7 +211,24 @@ func (rf *Raft) CondInstallSnapshot(lastIncludedTerm int, lastIncludedIndex int,
 // that index. Raft should now trim its logEntries as much as possible.
 func (rf *Raft) Snapshot(index int, snapshot []byte) {
 	// Your code here (2D).
+	rf.lock()
+	defer rf.unLock()
+	if rf.lastIncludedIndex >= index {
+		DPrintf("raft[%d] receive snapshot request, raft[%d]'s lastIncludedIndex[%d] 》= index[%d]", rf.me, rf.me, rf.lastIncludedIndex, index)
+		return
+	} else {
+		ok, i, logEntry := rf.getLogEntry(index)
+		var logEntries []LogEntry
+		if ok {
+			logEntries = rf.logEntries[i:]
+		}
 
+		rf.logEntries = logEntries
+		rf.lastIncludedIndex = index
+		rf.lastIncludedTerm = logEntry.Term
+		rf.SaveStateAndSnapshot(snapshot)
+		DPrintf("raft[%d] receive snapshot request, update lastIncludedIndex[%d], lastIncludedTerm[%d], logEntries[%v]", rf.me, rf.lastIncludedIndex, rf.lastIncludedTerm, rf.logEntries)
+	}
 }
 
 //
@@ -220,7 +253,18 @@ func (rf *Raft) killed() bool {
 }
 
 
-
+func(rf *Raft) SaveStateAndSnapshot(snapshot []byte) {
+	var state []byte
+	w := new(bytes.Buffer)
+	e := labgob.NewEncoder(w)
+	e.Encode(rf.currentTerm)
+	e.Encode(rf.votedFor)
+	e.Encode(rf.logEntries)
+	e.Encode(rf.lastIncludedIndex)
+	e.Encode(rf.lastIncludedTerm)
+	state = w.Bytes()
+	rf.persister.SaveStateAndSnapshot(state, snapshot)
+}
 
 
 //
@@ -249,24 +293,25 @@ func Make(peers []*labrpc.ClientEnd, me int,
 		commitIndex: 0,
 		lastApplied: 0, // 应用于state machine的log entry最高index
 		logEntries:  make([]LogEntry, 0),
+		lastIncludedIndex: 0,
+		lastIncludedTerm: 0,
 	}
 
-	rf.applyMsgCond = sync.NewCond(&rf.logMu)
+	rf.applyMsgCond = sync.NewCond(&rf.mu)
 	// Your initialization code here (2A, 2B, 2C).
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
-	terms := make([]int, len(rf.logEntries))
-	for k, v := range rf.logEntries {
-		terms[k] = v.Term
-	}
-	DPrintf("Make中节点%d的persist state中，currentTerm为【%d】，votedFor为【%d】，logEntries为【%v】", rf.me, rf.currentTerm, rf.votedFor, terms)
+	rf.lastApplied = rf.lastIncludedIndex
+	rf.applyCh = applyCh
 	// start ticker goroutine to start elections
 	go rf.ticker()
 	// 需要实现一个单独的长时间运行的goroutine，在applyCh上按顺序发送已提交的日志条目，推进commitIndex的代码需要推动apply 的goroutine
 	// 最简单的方式是使用条件变量（sync.Cond）
-	go rf.sendApplyMsg(applyCh)
+
+	go rf.sendCommandApplyMsg()
 	// apply logEntries[lastApplied] to state machine
 
 	return rf
 }
+
